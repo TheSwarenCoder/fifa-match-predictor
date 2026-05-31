@@ -4,7 +4,8 @@ import pandas as pd
 import numpy as np
 import joblib
 
-lr = joblib.load("lr_model.pkl")
+
+xgb = joblib.load("xgb_model.pkl")
 mlp = joblib.load("mlp_model.pkl")
 
 df = pd.read_pickle("football_features.pkl")
@@ -108,12 +109,12 @@ def predict_match(home_team, away_team, tournament, neutral=False):
         "neutral": int(neutral)
     }])
 
-    lr_probs = lr.predict_proba(match_features)
+    xgb_probs = xgb.predict_proba(match_features)
     mlp_probs = mlp.predict_proba(match_features)
 
     ensemble_probs = (
-        0.4 * lr_probs +
-        0.6 * mlp_probs
+        0.5 * xgb_probs +
+        0.5 * mlp_probs
     )
 
     prediction = np.argmax(ensemble_probs, axis=1)[0]
@@ -137,7 +138,7 @@ st.markdown("""
 .stApp{
 background:
 linear-gradient(rgba(0,0,0,.75),rgba(0,0,0,.85)),
-url('https://images.unsplash.com/photo-1637203727317-3cc1a557cdbf?q=80&w=1712&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+url('https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=2000&q=80');
 background-size:cover;
 background-position:center;
 background-attachment:fixed;
