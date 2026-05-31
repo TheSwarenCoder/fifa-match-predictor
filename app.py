@@ -10,6 +10,8 @@ scaler = joblib.load("scaler.pkl")
 lr = joblib.load("lr_model.pkl")
 xgb = joblib.load("xgb_model.pkl")
 mlp = joblib.load("mlp_model.pkl")
+home_goal_model = joblib.load("home_goal_model.pkl")
+away_goal_model = joblib.load("away_goal_model.pkl")
 
 df = pd.read_pickle("football_features.pkl")
 
@@ -118,9 +120,15 @@ def predict_match(home_team, away_team, tournament, neutral=False):
     # Scale features
     match_features_scaled = scaler.transform(match_features)
 
-    lr_probs = lr.predict_proba(match_features)
-    xgb_probs = xgb.predict_proba(match_features)
-    mlp_probs = mlp.predict_proba(match_features)
+    pred_home_goals = home_goal_model.predict(match_features)[0]
+    pred_away_goals = away_goal_model.predict(match_features)[0]
+
+    pred_home_goals = max(0, round(pred_home_goals))
+    pred_away_goals = max(0, round(pred_away_goals))
+
+    lr_probs = lr.predict_proba(match_features_scaled)
+    xgb_probs = xgb.predict_proba(match_features_scaled)
+    mlp_probs = mlp.predict_proba(match_features_scaled)
 
     ensemble_probs = (
         0.4 * lr_probs +
@@ -134,7 +142,9 @@ def predict_match(home_team, away_team, tournament, neutral=False):
         "home_win": ensemble_probs[0][0] * 100,
         "draw": ensemble_probs[0][1] * 100,
         "away_win": ensemble_probs[0][2] * 100,
-        "prediction": prediction
+        "prediction": prediction,
+        "pred_home_goals": pred_home_goals,
+        "pred_away_goals": pred_away_goals
     }
 
 st.set_page_config(
@@ -279,6 +289,7 @@ if st.button("🚀 PREDICT MATCH"):
             f"{home_team} Win",
             f"{result['home_win']:.2f}%"
         )
+    
 
     with r2:
         st.metric(
@@ -291,6 +302,20 @@ if st.button("🚀 PREDICT MATCH"):
             f"{away_team} Win",
             f"{result['away_win']:.2f}%"
         )
+
+
+    st.markdown(
+        f"""
+        <div class="winner-card">
+        ⚽ PREDICTED SCORE
+        <br><br>
+        {home_team.upper()} {result['pred_home_goals']}
+        -
+        {result['pred_away_goals']} {away_team.upper()}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     if result["prediction"] == 0:
         winner = home_team
