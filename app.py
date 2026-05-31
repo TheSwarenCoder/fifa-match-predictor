@@ -4,7 +4,10 @@ import pandas as pd
 import numpy as np
 import joblib
 
+median_values = joblib.load("median_values.pkl")
+scaler = joblib.load("scaler.pkl")
 
+lr = joblib.load("lr_model.pkl")
 xgb = joblib.load("xgb_model.pkl")
 mlp = joblib.load("mlp_model.pkl")
 
@@ -109,12 +112,20 @@ def predict_match(home_team, away_team, tournament, neutral=False):
         "neutral": int(neutral)
     }])
 
+    # Fill any missing values
+    match_features = match_features.fillna(median_values)
+
+    # Scale features
+    match_features_scaled = scaler.transform(match_features)
+
+    lr_probs = lr.predict_proba(match_features)
     xgb_probs = xgb.predict_proba(match_features)
     mlp_probs = mlp.predict_proba(match_features)
 
     ensemble_probs = (
-        0.5 * xgb_probs +
-        0.5 * mlp_probs
+        0.4 * lr_probs +
+        0.3 * xgb_probs +
+        0.3 * mlp_probs
     )
 
     prediction = np.argmax(ensemble_probs, axis=1)[0]
