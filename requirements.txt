@@ -5,4 +5,3 @@ plotly
 lightgbm
 joblib
 scikit-learn
-xgboost

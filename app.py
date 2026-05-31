@@ -5,7 +5,6 @@ import numpy as np
 import joblib
 
 lr = joblib.load("lr_model.pkl")
-xgb = joblib.load("xgb_model.pkl")
 mlp = joblib.load("mlp_model.pkl")
 
 df = pd.read_pickle("football_features.pkl")
@@ -110,13 +109,11 @@ def predict_match(home_team, away_team, tournament, neutral=False):
     }])
 
     lr_probs = lr.predict_proba(match_features)
-    xgb_probs = xgb.predict_proba(match_features)
     mlp_probs = mlp.predict_proba(match_features)
 
     ensemble_probs = (
         0.4 * lr_probs +
-        0.3 * xgb_probs +
-        0.3 * mlp_probs
+        0.6 * mlp_probs
     )
 
     prediction = np.argmax(ensemble_probs, axis=1)[0]
