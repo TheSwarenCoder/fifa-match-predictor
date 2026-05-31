@@ -4,4 +4,4 @@ numpy
 plotly
 lightgbm
 joblib
-scikit-learn
+scikit-learn==1.6.1
